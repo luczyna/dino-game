@@ -16,4 +16,7 @@ html, body {
     margin: 0 auto;
     padding: 0;
 }
-.points {}
+.points {
+	height: 40px;
+	background: rgb(30, 30, 0);
+}
