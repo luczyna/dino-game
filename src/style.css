@@ -1,0 +1,19 @@
+/* DINO PROTOTYPE
+ * 
+ * having fun with testing canvas
+ */
+
+html, body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.game-container {}
+.game-canvas {
+    background: #123342;
+    display: block;
+    margin: 0 auto;
+    padding: 0;
+}
+.points {}
