@@ -10,8 +10,8 @@
         // images and assets
         dino: document.createElement('img'),
         dinoSize: {
-            fx: 120, fy: 260,
-            px: 960, py: 520 
+            fx: 2417 / 8, fy: 1208 / 2,
+            px: 2417, py: 1208 
         },
 
         // data storage
@@ -35,7 +35,7 @@
         things: [],
         pointer: [],
         dino: {
-            status: 0,
+            status: 1,
             tick: 0,
             angle: [0, 0],
             pos: [elements.width / 2, elements.height / 2],

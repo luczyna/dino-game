@@ -7,7 +7,7 @@
 
     // start loading our game assets
     // elements.dino.src = 'assets/dinosaur.png';
-    elements.dino.src = 'assets/gom.png';
+    elements.dino.src = 'assets/dino_spritesheet.png';
     elements.dino.addEventListener('load', allLoaded, false);
 
     //this will detect the ratio/size multiplier for the game

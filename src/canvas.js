@@ -2,7 +2,7 @@
     "use strict"
 
     //start the game
-    game.interval = window.setInterval(update, 1000);
+    game.interval = window.setInterval(update, 100);
 
 
 
@@ -35,23 +35,34 @@
     }
 
     function drawDino() {
-        canvas.fillStyle = (game.dino.status) ? "#8CC63E" : "#f1f1f1";
-
-        var w = (elements.dinoSize.fx * elements.multiplier);
-        var h = (elements.dinoSize.fy * elements.multiplier);
-        // console.log(game.dino.pos[0] + ' ' + game.dino.pos[1] + ' ' + w + ' ' + h);
-
+        //where do we start drawing?
         var translateX = game.dino.pos[0];
         var translateY = game.dino.pos[1];
+        //how big do we draw?
+        var w = (elements.dinoSize.fx * elements.multiplier);
+        var h = (elements.dinoSize.fy * elements.multiplier);
+        //where are we cutting from the dino image
+        var sx = game.dino.tick * elements.dinoSize.fx;
+        var sy = game.dino.status * elements.dinoSize.fy;
 
-        console.log( translateX + ' ' + translateY);
+        // console.log(game.dino.pos[0] + ' ' + game.dino.pos[1] + ' ' + w + ' ' + h);
+
+        // console.log(translateX + ' ' + translateY);
 
         canvas.translate(translateX, translateY);
+        // canvas.translate(elements.dinoSize.fx * elements.multiplier / 2, 0);
         canvas.rotate(game.dino.angle[0]);
-        canvas.fillRect(0, 0, w, h);
+        // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+        canvas.strokeStyle = '#fff';
+        canvas.beginPath();
+        canvas.moveTo(10,10);
+        canvas.lineTo(0, elements.dinoSize.fy * elements.multiplier);
+        canvas.stroke();
+        canvas.drawImage(elements.dino, sx, sy, elements.dinoSize.fx, elements.dinoSize.fy, 0, 0, w, h);
 
         // put it all back
-        canvas.rotate(-game.dino.angle[0]);
+        canvas.rotate(-(game.dino.angle[0]));
+        // canvas.translate(-(elements.dinoSize.fx * elements.multiplier / 2), 0);
         canvas.translate(-(translateX), -(translateY));
     }
 
