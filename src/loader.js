@@ -26,14 +26,14 @@
     }
 
     function detectSize() {
-        if (elements.width > 1200) {
-            elements.multiplier = 1.5;
-        } else if (elements.width > 1000 && elements.width <= 1200) {
+        if (elements.width > 1800) {
             elements.multiplier = 1;
-        } else if (elements.width > 800 && elements.width <= 1000) {
+        } else if (elements.width > 1000 && elements.width <= 1200) {
             elements.multiplier = 0.75;
-        } else {
+        } else if (elements.width > 800 && elements.width <= 1000) {
             elements.multiplier = 0.5;
+        } else {
+            elements.multiplier = 0.45;
         }
 
         // properly set the dinosaur starting position

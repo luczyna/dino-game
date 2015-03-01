@@ -46,22 +46,32 @@
         var sy = game.dino.status * elements.dinoSize.fy;
 
         // console.log(game.dino.pos[0] + ' ' + game.dino.pos[1] + ' ' + w + ' ' + h);
-
         // console.log(translateX + ' ' + translateY);
 
         canvas.translate(translateX, translateY);
         // canvas.translate(elements.dinoSize.fx * elements.multiplier / 2, 0);
-        canvas.rotate(game.dino.angle[0]);
+        // if (game.dino.angle[2]) {
+            canvas.rotate(game.dino.angle[0]);
+        // } else {
+        //     canvas.rotate(-(game.dino.angle[0]));
+        // }
+
         // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+        canvas.drawImage(elements.dino, sx, sy, elements.dinoSize.fx, elements.dinoSize.fy, 0, 0, w, h);
         canvas.strokeStyle = '#fff';
         canvas.beginPath();
-        canvas.moveTo(10,10);
+        canvas.moveTo(elements.dinoSize.fx * elements.multiplier / 2, 0);
+        canvas.lineTo(elements.dinoSize.fx * elements.multiplier / 2, elements.dinoSize.fy * elements.multiplier);
+        canvas.moveTo(0, 0);
         canvas.lineTo(0, elements.dinoSize.fy * elements.multiplier);
         canvas.stroke();
-        canvas.drawImage(elements.dino, sx, sy, elements.dinoSize.fx, elements.dinoSize.fy, 0, 0, w, h);
 
         // put it all back
-        canvas.rotate(-(game.dino.angle[0]));
+        // if (game.dino.angle[2]) {
+            canvas.rotate(-(game.dino.angle[0]));
+        // } else {
+        //     canvas.rotate(game.dino.angle[0]);
+        // }
         // canvas.translate(-(elements.dinoSize.fx * elements.multiplier / 2), 0);
         canvas.translate(-(translateX), -(translateY));
     }

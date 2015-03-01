@@ -37,7 +37,8 @@
         dino: {
             status: 1,
             tick: 0,
-            angle: [0, 0],
+            // angle => current, intended, direction
+            angle: [0, 0, 0],
             pos: [elements.width / 2, elements.height / 2],
             destination: [null, null]
         }
