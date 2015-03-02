@@ -1,5 +1,5 @@
 (function() {
-    "use strict"
+    "use strict";
 
     // set our sizes for the two elements on screen
     elements.canvas.width = window.innerWidth;
@@ -19,7 +19,7 @@
     //////
 
     function allLoaded() {
-        console.log('all loaded');
+        // console.log('all loaded');
         game.ready = true;
 
         elements.dino.removeEventListener('load', allLoaded);
@@ -33,7 +33,7 @@
         } else if (elements.width > 800 && elements.width <= 1000) {
             elements.multiplier = 0.5;
         } else {
-            elements.multiplier = 0.45;
+            elements.multiplier = 0.25;
         }
 
         // properly set the dinosaur starting position

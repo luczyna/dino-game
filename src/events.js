@@ -1,5 +1,5 @@
 (function() {
-    'use strict'
+    'use strict';
 
     /* this handles events like clicking and touching */
     elements.canvas.addEventListener('touchstart', handleTouch, false);
@@ -37,11 +37,13 @@
         // this is the destination of the dinosaur
         // make it so!
         game.dino.destination = [x, y];
+        dino.setTurn(x, y);
         dino.walk();
 
-        dino.turn(x, y);
 
         // add this to the pointer collection
         // because we're letting people know they clicked
+        var pointer = new Pointer(x, y);
+        game.pointer.push(pointer);
     }
 })();

@@ -1,5 +1,5 @@
 (function() {
-    "use strict"
+    "use strict";
 
     //start the game
     game.interval = window.setInterval(update, 100);
@@ -29,6 +29,7 @@
         //draw the flashy bits
 
         //draw the pointer
+        drawPointer();
 
         //draw the dino
         drawDino();
@@ -50,16 +51,17 @@
 
         canvas.translate(translateX, translateY);
         // canvas.translate(elements.dinoSize.fx * elements.multiplier / 2, 0);
-        // if (game.dino.angle[2]) {
-            canvas.rotate(game.dino.angle[0]);
-        // } else {
-        //     canvas.rotate(-(game.dino.angle[0]));
-        // }
+        // canvas.save();
+        // turningOnDime();
+        // canvas.restore();
+        canvas.rotate(game.dino.angle[0]);
 
         // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
         canvas.drawImage(elements.dino, sx, sy, elements.dinoSize.fx, elements.dinoSize.fy, 0, 0, w, h);
+        
         canvas.strokeStyle = '#fff';
         canvas.beginPath();
+        canvas.arc(0, 0, elements.dinoSize.fx * elements.multiplier / 2, 0, Math.PI * 2);
         canvas.moveTo(elements.dinoSize.fx * elements.multiplier / 2, 0);
         canvas.lineTo(elements.dinoSize.fx * elements.multiplier / 2, elements.dinoSize.fy * elements.multiplier);
         canvas.moveTo(0, 0);
@@ -67,16 +69,26 @@
         canvas.stroke();
 
         // put it all back
-        // if (game.dino.angle[2]) {
-            canvas.rotate(-(game.dino.angle[0]));
-        // } else {
-        //     canvas.rotate(game.dino.angle[0]);
-        // }
+        canvas.rotate(-(game.dino.angle[0]));
         // canvas.translate(-(elements.dinoSize.fx * elements.multiplier / 2), 0);
         canvas.translate(-(translateX), -(translateY));
     }
 
+    function turningOnDime() {
+        var origin = -(100 * elements.multiplier);
+        canvas.translate(origin, origin);
+    }
+
     function drawPointer() {
+        var x, y;
+        for (var i = 0; i < game.pointer.length; i++) {
+            x = game.pointer[i].coordinates[0];
+            y = game.pointer[i].coordinates[1];
+            canvas.beginPath();
+            canvas.fillStyle = 'lime';
+            canvas.arc(x, y, 10, 0, Math.PI * 2);
+            canvas.fill();
+        }
 
     }
 

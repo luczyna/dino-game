@@ -1,14 +1,15 @@
 (function() {
-    'use strict'
+    'use strict';
 
     window.dino = {
         update: updateInfo,
-        turn: setTurn,
+        setTurn: setTurn,
         rotate: rotateDino,
+        compass: determineDirection,
         walk: startWalking,
         wait: stopWalking,
         move: keepMoving
-    }
+    };
 
 
 
@@ -28,26 +29,165 @@
         // is he moving?
         if (game.dino.status === 0) {
             // is he at his destination?
-            var dist_x = Math.abs(game.dino.pos[0] - game.dino.destination[0]);
-            var dist_y = Math.abs(game.dino.pos[1] - game.dino.destination[1]);
+            var alteredDino = determineAlteredCoordinates();
+
+            var dist_x = Math.abs(alteredDino.x - game.dino.destination[0]);
+            var dist_y = Math.abs(alteredDino.y - game.dino.destination[1]);
 
             if (dist_x < 30 && dist_y < 30) {
                 // yes!
                 this.wait();
             } else {
                 // nope, still gotsta move it
-                this.rotate();
-                this.move();
+                var canMove = this.rotate();
+                if (canMove) {
+                    this.move();
+                }
             }
         }
 
     }
 
+    // calculate the angle the dino should get to
     function setTurn(x, y) {
-        // calculate the angle the dino should get to
-        var arctan, trig = {};
-        var direction = ['up', null];
+        var tangent = {}, distance = {}, alpha, beta, radius;
         // what direction are we facing?
+        var direction = this.compass();
+        // what direction should we go?
+        //    this alters game.dino.angle[2] = 0 left || 1 right
+        //                game.dino.angle[3] = 0 null || 1 turn around
+        determineDirectionToTake(x, y, direction);
+
+        // now we need to determine the tangent and it's angle
+        // http://jsfiddle.net/zxqCw/101/
+        distance.x = Math.abs(game.dino.pos[0] - x);
+        distance.y = Math.abs(game.dino.pos[1] - y);
+        distance.hypotenus = Math.sqrt(Math.pow(distance.x, 2) + Math.pow(distance.y, 2));
+        radius = elements.dinoSize.fx * elements.multiplier / 2;
+        alpha = Math.asin(radius / distance.hypotenus);
+        beta = Math.atan(distance.y / distance.x);
+
+
+        if (game.dino.angle[2]) {
+            // we'll be turning right
+            tangent = beta + alpha;
+        } else {
+            // we'll be turning left
+            tangent = beta - alpha;
+        }
+
+        // are we turning all the way around?
+        if (game.dino.angle[3]) {
+
+        } else {
+            //we're not turning all the way around
+            if (game.dino.angle[2]) {
+                game.dino.angle[1] = Math.PI / 2 - tangent;
+            } else {
+                game.dino.angle[1] = -(Math.PI/ 2 - tangent);
+            }
+        }
+
+            // game.dino.angle[1] = -(tangent.angle) + (Math.PI / 2);
+
+
+        var coordinates = {
+            origin_x: game.dino.pos[0],
+            origin_y: game.dino.pos[1],
+            destination_x: x,
+            destination_y: y
+        };
+        console.log(JSON.stringify(coordinates));
+        console.log(distance);
+        console.log('tangent: ' + tangent);
+        console.log('alpha: ' + alpha);
+        console.log('beta: ' + beta);
+        console.log('end movement notes\n\n');
+    }
+
+    function rotateDino() {
+        var diff = Math.abs(game.dino.angle[0] - game.dino.angle[1]);
+        // console.log(diff);
+        console.log('current angle: ' + game.dino.angle[0] + '\ndestination angle: ' + game.dino.angle[1]);
+        
+        // if the angle of the dino is above the Math.PI * 2, revert it 
+        if (game.dino.angle[0] > (Math.PI * 2)) {
+            game.dino.angle[0] -= (Math.PI * 2);
+        }
+
+        //how micro so we want these ticks
+        var ticks = 64;
+        var canMove = true;
+        if (game.dino.angle[2] === 1 && (diff > Math.PI / ticks)) {
+            console.log('rotating to the RIGHT');
+            // the current angle is less than what it should be
+            // game.dino.angle[0] += Math.PI / ticks;
+            // game.dino.angle[0] += (diff * 0.75);
+            if (game.dino.angle[0] + Math.pow(diff, 0.5) * 0.25 > (Math.PI * 2)) {
+                game.dino.angle[0] -= (Math.PI * 2);
+                game.dino.angle[0] += Math.pow(diff, 0.75) * 0.15;
+            } else {
+                game.dino.angle[0] += Math.pow(diff, 0.75) * 0.15;
+            }
+            canMove = false;
+        } else if (game.dino.angle[2] === 0 && (diff > Math.PI / ticks)) {
+            console.log('rotating to the LEFT');
+            // the current angle is more than what it should be
+            // game.dino.angle[0] -= Math.PI / ticks;
+            // game.dino.angle[0] -= (diff * 0.75);
+            game.dino.angle[0] -= Math.pow(diff, 0.75) * 0.15;
+            canMove = false;
+        }
+
+        return canMove;
+    }
+
+    function startWalking() {
+        game.dino.status = 0;
+    }
+
+    function stopWalking() {
+        game.dino.status = 1;
+
+        if (game.dino.angle[0] < 0) {
+            //change it to be greater than 0
+            var current = game.dino.angle[0];
+            game.dino.angle[0] = (Math.PI * 2) + current;
+            console.log('changed the dino angle');
+        } else if (game.dino.angle[0] > Math.PI * 2) {
+            var current = game.dino.angle[0];
+            game.dino.angle[0] = (Math.PI * 2) % current;
+            console.log('changed the dino angle, but you have issues. It was too high.');
+        }
+    }
+
+    function keepMoving() {
+        var alteredDino = determineAlteredCoordinates();
+
+        var x = Math.abs(alteredDino.x - game.dino.destination[0]);
+        var y = Math.abs(alteredDino.y - game.dino.destination[1]);
+        if (alteredDino.x > game.dino.destination[0] && x > 20) {
+            game.dino.pos[0] -= (x * 0.1);
+            // game.dino.pos[0] -= 10;
+        } else if (alteredDino.x < game.dino.destination[0] && x > 20) {
+            game.dino.pos[0] += (x * 0.1);
+            // game.dino.pos[0] += 10;
+        }
+
+        if (alteredDino.y > game.dino.destination[1] && y > 20) {
+            game.dino.pos[1] -= (y * 0.1);
+            // game.dino.pos[1] -= 10;
+        } else if (alteredDino.y < game.dino.destination[1] && y > 20) {
+            game.dino.pos[1] += (y * 0.1);
+            // game.dino.pos[1] += 10;
+        }
+    }
+
+    ////// utilities
+
+    function determineDirection() {
+        var direction = ['up', null];
+
         if (
             game.dino.angle[0] <= Math.PI * 0.5 ||
             game.dino.angle[0] >= Math.PI * 1.5
@@ -78,189 +218,66 @@
             direction[1] = 'left';
         }
 
+        return direction;
+    }
+
+    function determineDirectionToTake(x, y, direction) {
         // determine the direction to take (left or right)
         if (y <= game.dino.pos[1] && direction[0] === 'up') {
             console.log("dino goes forward up");
+            game.dino.angle[3] = 0;
             if (x <= game.dino.pos[0]) {
                 console.log("dino goes left");
                 game.dino.angle[2] = 0;
-
-                trig.x = x - game.dino.pos[0];
-                trig.y = game.dino.pos[1] - y;        
-                arctan = -Math.atan(y / x);
-                game.dino.angle[1] = arctan;
             } else {
                 console.log("dino goes right");
-                game.dino.angle[2] = 1
-        
-                trig.x = x - game.dino.pos[0];
-                trig.y = game.dino.pos[1] - y;
-                arctan = Math.atan(trig.x / trig.y);
-                game.dino.angle[1] = arctan;
+                game.dino.angle[2] = 1;
             }
         } else if (y > game.dino.pos[1] && direction[0] === 'up') {
             console.log("dino turns around to face down");
+            game.dino.angle[3] = 1;
             if (x <= game.dino.pos[0]) {
                 console.log("dino goes left");
                 game.dino.angle[2] = 0;
-
-                trig.x = x - game.dino.pos[0];
-                trig.y = game.dino.pos[1] - y;        
-                arctan = -Math.atan(y / x);
-                game.dino.angle[1] = arctan - (Math.PI / 2);
             } else {
                 console.log("dino goes right");
-                game.dino.angle[2] = 1
-                
-                trig.x = x - game.dino.pos[0];
-                trig.y = y - game.dino.pos[1];
-                arctan = Math.atan(trig.y / trig.x);
-                game.dino.angle[1] = arctan + (Math.PI / 2);
+                game.dino.angle[2] = 1;
             }
         } else if (y <= game.dino.pos[1] && direction[0] === 'down') {
             console.log("dino turns around to face up");
-            if (x <= game.dino.pos[0]) {
-                console.log("dino goes right");
-                game.dino.angle[2] = 1
-
-                trig.x = x - game.dino.pos[0];
-                trig.y = y - game.dino.pos[1];
-                arctan = Math.atan(trig.y / trig.x);
-                game.dino.angle[1] = arctan + (Math.PI * 1.5);
-            } else {
-                console.log("dino goes left");
-                game.dino.angle[2] = 0;
-
-                trig.x = x - game.dino.pos[0];
-                trig.y = game.dino.pos[1] - y;        
-                arctan = Math.atan(y / x);
-                game.dino.angle[1] = arctan;
-            }
-        } else if (y > game.dino.pos[1] && direction[0] === 'down') {
-            console.log("dino goes forward down");
+            game.dino.angle[3] = 1;
             if (x <= game.dino.pos[0]) {
                 console.log("dino goes right");
                 game.dino.angle[2] = 1;
-
-                trig.x = x - game.dino.pos[0];
-                trig.y = y - game.dino.pos[1];
-                arctan = Math.atan(trig.y / trig.x);
-                game.dino.angle[1] = arctan + (Math.PI * 1.5);
             } else {
                 console.log("dino goes left");
-                game.dino.angle[2] = 0
-
-                trig.x = x - game.dino.pos[0];
-                trig.y = game.dino.pos[1] - y;        
-                arctan = Math.atan(y / x);
-                game.dino.angle[1] = arctan + Math.PI / 2;
-
-                console.log('radians to go: ' + arctan);
-                console.log('degress: ' + (arctan * (180 / Math.PI)));
+                game.dino.angle[2] = 0;
             }
-        }
-        game.dino.angle[0] = game.dino.angle[0] % (Math.PI * 2);
-        console.log('end movement notes\n\n');
-
-        // var addThis;
-        // if (x <= game.dino.pos[0]) {
-        //     if (y <= game.dino.pos[1]) {
-        //         // quadrant 4 => add 270
-        //         addThis = Math.PI * 1.5;
-        //     } else {
-        //         // quadrant 3 => add 180
-        //         addThis = Math.PI;
-        //     }
-        // } else {
-        //     if (y <= game.dino.pos[1]) {
-        //         // quadrant 1 => add 0
-        //         addThis = 0;
-        //     } else {
-        //         // quadrant 2 => add 90
-        //         addThis = Math.PI / 2;
-        //     }
-        // }
-        // var rad1 = Math.atan(y / x);
-        // var radianFinal = rad1 + addThis;
-
-        // console.log('position');
-        // console.log(game.dino.pos[0] + ' ' + game.dino.pos[1]);
-        // console.log('destination');
-        // console.log(x + ' ' + y);
-        // console.log('arctan and quadrant');
-        // console.log(rad1 + ' ' + addThis);
-        // console.log('resulting radians');
-        // console.log(radianFinal);
-
-        // game.dino.angle[0] = radianFinal;
-        //
-        // game.dino.angle[1] = radianFinal;
-    }
-
-    function rotateDino() {
-        var diff = Math.abs(game.dino.angle[0] - game.dino.angle[1]);
-        // console.log(diff);
-        console.log('current angle: ' + game.dino.angle[0] 
-            + '\ndestination angle: ' + game.dino.angle[1]);
-
-        // if the angle of the dino is above the Math.PI * 2, revert it 
-        if (game.dino.angle[0] > (Math.PI * 2)) {
-            game.dino.angle[0] -= (Math.PI * 2);
-        }
-
-        //how micro so we want these ticks
-        var ticks = 64;
-        if (game.dino.angle[2] === 1 && (diff > Math.PI / ticks)) {
-            console.log('rotating to the RIGHT');
-            // the current angle is less than what it should be
-            // game.dino.angle[0] += Math.PI / ticks;
-            // game.dino.angle[0] += (diff * 0.75);
-            if (game.dino.angle[0] + Math.pow(diff, 0.5) * 0.25 > (Math.PI * 2)) {
-                game.dino.angle[0] -= (Math.PI * 2);
-                game.dino.angle[0] += Math.pow(diff, 0.75) * 0.15;
+        } else if (y > game.dino.pos[1] && direction[0] === 'down') {
+            console.log("dino goes forward down");
+            game.dino.angle[3] = 0;
+            if (x <= game.dino.pos[0]) {
+                console.log("dino goes right");
+                game.dino.angle[2] = 1;
             } else {
-                game.dino.angle[0] += Math.pow(diff, 0.75) * 0.15;
+                console.log("dino goes left");
+                game.dino.angle[2] = 0;
             }
-        } else if (game.dino.angle[2] === 0 && (diff > Math.PI / ticks)) {
-            console.log('rotating to the LEFT');
-            // the current angle is more than what it should be
-            // game.dino.angle[0] -= Math.PI / ticks;
-            // game.dino.angle[0] -= (diff * 0.75);
-            game.dino.angle[0] -= Math.pow(diff, 0.75) * 0.15;
         }
     }
 
-    function startWalking() {
-        game.dino.status = 0;
-    }
-
-    function stopWalking() {
-        game.dino.status = 1;
-
-        if (game.dino.angle[0] < 0) {
-            //change it to be greater than 0
-            var current = game.dino.angle[0];
-            game.dino.angle[0] = (Math.PI * 2) + current;
-        }
-    }
-
-    function keepMoving() {
-        var x = Math.abs(game.dino.pos[0] - game.dino.destination[0]);
-        var y = Math.abs(game.dino.pos[1] - game.dino.destination[1]);
-        if (game.dino.pos[0] > game.dino.destination[0] && x > 20) {
-            // game.dino.pos[0] -= (x * 0.1);
-            game.dino.pos[0] -= 10;
-        } else if (game.dino.pos[0] < game.dino.destination[0] && x > 20) {
-            // game.dino.pos[0] += (x * 0.1);
-            game.dino.pos[0] += 10;
+    function determineAlteredCoordinates() {
+        var alteredDino = {};
+        if (game.dino.angle[2]) {
+            // going right
+            alteredDino.x = game.dino.pos[0] + elements.dinoSize.fx * elements.multiplier / 2;
+            alteredDino.y = game.dino.pos[1] + 150 * elements.multiplier;
+        } else {
+            // going left
+            alteredDino.x = game.dino.pos[0] + elements.dinoSize.fx * elements.multiplier / 2;
+            alteredDino.y = game.dino.pos[1];
         }
 
-        if (game.dino.pos[1] > game.dino.destination[1] && y > 20) {
-            // game.dino.pos[1] -= (y * 0.1);
-            game.dino.pos[1] -= 10;
-        } else if (game.dino.pos[1] < game.dino.destination[1] && y > 20) {
-            // game.dino.pos[1] += (y * 0.1);
-            game.dino.pos[1] += 10;
-        }
+        return alteredDino;
     }
 })();
