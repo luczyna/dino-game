@@ -23,6 +23,7 @@
         game.ready = true;
 
         elements.dino.removeEventListener('load', allLoaded);
+        canvas.imageSmoothingEnabled = true;
     }
 
     function detectSize() {
@@ -33,7 +34,7 @@
         } else if (elements.width > 800 && elements.width <= 1000) {
             elements.multiplier = 0.5;
         } else {
-            elements.multiplier = 0.25;
+            elements.multiplier = 0.15;
         }
 
         // properly set the dinosaur starting position

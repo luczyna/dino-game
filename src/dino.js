@@ -48,17 +48,13 @@
 
     }
 
+    window.tangentPoints = [0,0];
+    
     // calculate the angle the dino should get to
     function setTurn(x, y) {
         var tangent = {}, distance = {}, alpha, beta, radius;
-        // what direction are we facing?
-        var direction = this.compass();
-        // what direction should we go?
-        //    this alters game.dino.angle[2] = 0 left || 1 right
-        //                game.dino.angle[3] = 0 null || 1 turn around
-        determineDirectionToTake(x, y, direction);
-
-        // now we need to determine the tangent and it's angle
+        
+        // we need to determine the tangent and it's angle
         // http://jsfiddle.net/zxqCw/101/
         distance.x = Math.abs(game.dino.pos[0] - x);
         distance.y = Math.abs(game.dino.pos[1] - y);
@@ -67,39 +63,11 @@
         alpha = Math.asin(radius / distance.hypotenus);
         beta = Math.atan(distance.y / distance.x);
 
-
-        if (game.dino.angle[2]) {
-            // we'll be turning right
-            tangent = beta + alpha;
-        } else {
-            // we'll be turning left
-            tangent = beta - alpha;
-        }
-
-        // are we turning all the way around?
-        if (game.dino.angle[3]) {
-
-        } else {
-            //we're not turning all the way around
-            if (game.dino.angle[2]) {
-                // right
-                game.dino.angle[1] = Math.PI / 2 - tangent;
-                if (game.dino.angle[1] < 0 && game.dino.angle[0] > Math.PI) {
-                    game.dino.angle[0] = -(Math.PI * 2 - game.dino.angle[0]);
-                }
-            } else {
-                // left
-                game.dino.angle[1] = -(Math.PI/ 2 - tangent);
-                if (game.dino.angle[1] < 0 && game.dino.angle[0] > 0) {
-                    // game.dino.angle[0] = Math.PI * 2 - game.dino.angle[0];
-                    game.dino.angle[1] = Math.PI * 2 + game.dino.angle[1]
-                }
-            }
-        }
-
-            // game.dino.angle[1] = -(tangent.angle) + (Math.PI / 2);
-
-
+        // what direction should we go?
+        // and what angle should we get to?
+        tangent = this.compass(alpha, beta, x, y, radius);
+        game.dino.angle[1] = tangent;
+        
         var coordinates = {
             origin_x: game.dino.pos[0],
             origin_y: game.dino.pos[1],
@@ -116,7 +84,6 @@
 
     function rotateDino() {
         var diff = Math.abs(game.dino.angle[0] - game.dino.angle[1]);
-        var increment = Math.pow(diff, 0.5) * 0.25;
         console.log('current angle: ' + game.dino.angle[0] + '\ndestination angle: ' + game.dino.angle[1]);
         
         // if the angle of the dino is above the Math.PI * 2, revert it 
@@ -125,9 +92,13 @@
         }
 
         //how micro so we want these ticks
-        var ticks = 16;
+        var ticks = 32;
+        var increment = Math.PI / ticks * 4;
         var canMove = true;
-        if (game.dino.angle[2] === 1 && (diff > Math.PI / ticks)) {
+        if (true) {
+            game.dino.angle[0] = game.dino.angle[1]
+            canMove = true;
+        } else if (game.dino.angle[2] === 1 && (diff > Math.PI / ticks)) {
             console.log('rotating to the RIGHT');
             // the current angle is less than what it should be
             if (game.dino.angle[0] + increment > (Math.PI * 2)) {
@@ -197,84 +168,50 @@
 
     ////// utilities
 
-    function determineDirection() {
-        var direction = ['up', null];
+    function determineDirection(alpha, beta, x, y, radius) {
+        // are we going to go left 0 or right 1
+        // we need to compare these to our current angle
+        var current = game.dino.angle[0];
 
-        if (
-            game.dino.angle[0] <= Math.PI * 0.5 ||
-            game.dino.angle[0] >= Math.PI * 1.5
-        ) {
-            // we are facing up
-            console.log('facing up');
-            direction[0] = 'up';
+        var ifLeft = beta - alpha;
+        var ifRight = beta + alpha;
+
+        // which quadrant (in relation to dino) is the destination in?
+        // we need to take it's angle into account
+        var quadrant;
+        if (game.dino.pos[0] <= x) {
+            // right side
+            quadrant = (game.dino.pos[1] >= y) ? -Math.PI / 2 : Math.PI / 2;
         } else {
-            // we are facing down
-            console.log('facing down');
-            direction[0] = 'down';
+            //left side
+            quadrant = (game.dino.pos[1] >= y) ? Math.PI * 1.5 : -Math.PI * 1.5;
         }
 
-        if (
-            game.dino.angle[0] >= Math.PI * 0.25 &&
-            game.dino.angle[0] <= Math.PI * 0.75
-        ) {
-            // we are facing right
-            console.log('facing right');
-            direction[1] = 'right';
-        }
-        if (
-            game.dino.angle[0] >= Math.PI * 1.25 &&
-            game.dino.angle[0] <= Math.PI * 1.75
-        ) {
-            // we are facing left
-            console.log('facing left');
-            direction[1] = 'left';
-        }
+        console.log('quadrant: ' + quadrant);
 
-        return direction;
-    }
+        var testLeft = Math.abs(ifLeft + quadrant);
+        var testRight = Math.abs(ifRight + quadrant);
 
-    function determineDirectionToTake(x, y, direction) {
-        // determine the direction to take (left or right)
-        if (y <= game.dino.pos[1] && direction[0] === 'up') {
-            console.log("dino goes forward up");
-            game.dino.angle[3] = 0;
-            if (x <= game.dino.pos[0] /*&& direction[1] !== 'left'*/) {
-                console.log("dino goes left");
-                game.dino.angle[2] = 0;
-            } else {
-                console.log("dino goes right");
-                game.dino.angle[2] = 1;
-            }
-        } else if (y > game.dino.pos[1] && direction[0] === 'up') {
-            console.log("dino turns around to face down");
-            game.dino.angle[3] = 1;
-            if (x <= game.dino.pos[0] && direction[1] !== 'left') {
-                console.log("dino goes left");
-                game.dino.angle[2] = 0;
-            } else {
-                console.log("dino goes right");
-                game.dino.angle[2] = 1;
-            }
-        } else if (y <= game.dino.pos[1] && direction[0] === 'down') {
-            console.log("dino turns around to face up");
-            game.dino.angle[3] = 1;
-            if (x <= game.dino.pos[0] && direction[1] !== 'right') {
-                console.log("dino goes right");
-                game.dino.angle[2] = 1;
-            } else {
-                console.log("dino goes left");
-                game.dino.angle[2] = 0;
-            }
-        } else if (y > game.dino.pos[1] && direction[0] === 'down') {
-            console.log("dino goes forward down");
-            game.dino.angle[3] = 0;
-            if (x <= game.dino.pos[0] && direction[1] !== 'right') {
-                console.log("dino goes right");
-                game.dino.angle[2] = 1;
-            } else {
-                console.log("dino goes left");
-                game.dino.angle[2] = 0;
-            }
+        // what is the distance to rotate?
+        var distanceLeft = Math.abs(testLeft - current);
+        var distanceRight = Math.abs(testRight - current);
+
+        if (distanceLeft > distanceRight) {
+            // we'll be turning right
+            game.dino.angle[2] = 0;
+            // tangent = beta + alpha;
+            tangentPoints[0] = game.dino.pos[0] + radius * Math.sin(ifLeft);
+            tangentPoints[1] = game.dino.pos[1] + radius * -Math.cos(ifLeft);
+
+            return testRight;
+        } else {
+            // we'll be turning left
+            game.dino.angle[2] = 0;
+            // tangent = beta - alpha;
+            tangentPoints[0] = game.dino.pos[0] + radius * -Math.sin(ifRight);
+            tangentPoints[1] = game.dino.pos[1] + radius * Math.cos(ifRight);
+
+            return testLeft
         }
     }
 

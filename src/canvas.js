@@ -51,9 +51,6 @@
 
         canvas.translate(translateX, translateY);
         // canvas.translate(elements.dinoSize.fx * elements.multiplier / 2, 0);
-        // canvas.save();
-        // turningOnDime();
-        // canvas.restore();
         canvas.rotate(game.dino.angle[0]);
 
         // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
@@ -66,18 +63,20 @@
         canvas.lineTo(elements.dinoSize.fx * elements.multiplier / 2, elements.dinoSize.fy * elements.multiplier);
         canvas.moveTo(0, 0);
         canvas.lineTo(0, elements.dinoSize.fy * elements.multiplier);
+
         canvas.stroke();
 
         // put it all back
         canvas.rotate(-(game.dino.angle[0]));
         // canvas.translate(-(elements.dinoSize.fx * elements.multiplier / 2), 0);
         canvas.translate(-(translateX), -(translateY));
+        
+        canvas.moveTo(tangentPoints[0], tangentPoints[1]);
+        canvas.lineTo(game.dino.destination[0], game.dino.destination[1]);
+        // canvas.lineTo(game.dino.destiantion, translateY);
+        canvas.stroke();
     }
 
-    function turningOnDime() {
-        var origin = -(100 * elements.multiplier);
-        canvas.translate(origin, origin);
-    }
 
     function drawPointer() {
         var x, y;
